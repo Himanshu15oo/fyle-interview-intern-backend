@@ -62,6 +62,7 @@ def test_grade_assignment_bad_grade(client, h_teacher_1):
     data = response.json
 
     assert data['error'] == 'FyleError'
+    assert data['message'] == 'Invalid grades'
 
 
 def test_grade_assignment_bad_assignment(client, h_teacher_1):
@@ -119,3 +120,63 @@ def test_grade_assignment_missing_grade(client, h_teacher_1):
     data = response.json
 
     assert data['error'] == 'ValidationError'
+
+
+def test_grade_assignment_missing_id(client, h_teacher_1):
+    """
+    Failure case: If "id" field is missing in the request JSON for grading assignment
+    """
+    response = client.post(
+        '/teacher/assignments/grade',
+        headers=h_teacher_1,
+        json={
+            "grade": "A"
+        }
+    )
+
+    assert response.status_code == 400
+    data = response.json
+
+    assert data['error'] == 'ValidationError'
+
+
+def test_grade_assignment_teacher_1(client, h_teacher_1):
+    """
+    failure case: assignment 1 was submitted to teacher 1 and not teacher 2
+    """
+    response = client.post(
+        '/teacher/assignments/grade',
+        headers=h_teacher_1,
+        json={
+            "id": 1,
+            "grade": "A"
+        }
+    )
+
+    assert response.status_code == 200
+
+    data = response.json['data']
+    # for assignment in data:
+    assert data['teacher_id'] == 1
+    assert data['state'] == 'GRADED'
+
+
+def test_grade_assignment_teacher_2(client, h_teacher_2):
+    """
+    failure case: assignment 1 was submitted to teacher 1 and not teacher 2
+    """
+    response = client.post(
+        '/teacher/assignments/grade',
+        headers=h_teacher_2,
+        json={
+            "id": 2,
+            "grade": "C"
+        }
+    )
+
+    assert response.status_code == 200
+
+    data = response.json['data']
+    # for assignment in data:
+    assert data['teacher_id'] == 2
+    assert data['state'] == 'GRADED'

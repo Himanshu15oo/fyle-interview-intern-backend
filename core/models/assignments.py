@@ -91,9 +91,12 @@ class Assignment(db.Model):
             assignment, 'No assignment with this id was found')
         assertions.assert_valid(assignment.teacher_id == principal.teacher_id,
                                 'This assignment belongs to some other teacher')
+
+        assertions.assert_valid(assignment.grade == None,
+                                'Assignment already graded')
         # validation if grade is acceptable
         assertions.assert_valid(grade in [g.value for g in GradeEnum],
-                                'ValidationError')
+                                'Invalid grades')
 
         # validation if grade is not present in payload
         assertions.assert_valid(grade is not None,
